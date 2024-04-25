@@ -1,51 +1,27 @@
-import React, { useState } from "react";
-import axios from "axios";
+import React from "react";
+import { Link, Routes, Route } from "react-router-dom";
 import Blog from "./Blog";
+import Login from "./Login";
+import Blogs from "./Blogs";
 import "./App.css";
 const App = () => {
-  const [selectedImage, setSelectedImage] = useState(null);
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setSelectedImage(file);
-  };
-  const handleUpload = () => {
-    const formData = new FormData();
-    formData.append("image", selectedImage);
-
-    // Send POST request to backend
-    axios
-      .post("http://localhost:5000/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
-      .then((response) => {
-        // Handle response from backend
-        console.log("Image uploaded successfully");
-      })
-      .catch((error) => {
-        // Handle error
-        console.error("Error uploading image:", error);
-      });
-  };
-
   return (
     <main>
-      {/* <div>
-        <input
-          type="file"
-          accept="image/*" // Specify accepted file types (images in this case)
-          onChange={handleImageChange}
-        />
-        {selectedImage && (
-          <div>
-            <img src={URL.createObjectURL(selectedImage)} alt="Selected" />
-          </div>
-        )}
-        <button onClick={handleUpload}>Upload Image</button>
-      </div> */}
-      <Blog />
+      <header>
+        <h1>Blog</h1>
+        <nav>
+          <Link to="/">Home</Link>
+          <Link to="/blog">Create</Link>
+          <Link to="/signIn">Sign In</Link>
+          <Link to="/signup">Sign Up</Link>
+        </nav>
+      </header>
+      <Routes>
+        <Route path="/" element={<Blogs />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/signIn" element={<Login data={false} />} />
+        <Route path="/signup" element={<Login data={true} />} />
+      </Routes>
     </main>
   );
 };
