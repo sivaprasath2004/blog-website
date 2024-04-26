@@ -1,8 +1,10 @@
 import React, { useState, useRef } from "react";
 import axios from "axios";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { storage } from "./firebase/fb";
 import "./Blog.css";
 const Blog = () => {
-  const [checker, setChecker] = useState({});
+  const [checker, setChecker] = useState({ url: null });
   const [image, setImage] = useState(null);
   const fileInputRef = useRef(null);
   const handleTitle = (e) =>
@@ -12,16 +14,47 @@ const Blog = () => {
   const handleTags = (e) =>
     setChecker((pre) => ({ ...pre, Tags: e.target.value }));
   const handleCancel = () => setImage(null);
-  const handleDrop = (e) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
+  function uploadFile() {
+    const uploadTask = uploadBytesResumable(
+      ref(storage, `/images/${image.name}`),
+      image
+    );
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        console.log(`Upload is ${progress}% done`);
+      },
+      (error) => {
+        console.error("Upload failed:", error.message);
+      },
+      () => {
+        console.log("Upload successful");
+        getDownloadURL(uploadTask.snapshot.ref)
+          .then((downloadURL) => {
+            setChecker((pre) => ({ ...pre, url: downloadURL }));
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+    );
+  }
+  const imageURL = (file) => {
     if (file && file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onload = () => {
-        setImage(reader.result);
+        setChecker((pre) => ({ ...pre, image: reader.result }));
       };
       reader.readAsDataURL(file);
     }
+  };
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    setImage(file);
+    imageURL(file);
   };
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -29,26 +62,24 @@ const Blog = () => {
 
   const handleInputChange = (e) => {
     const file = e.target.files[0];
-    if (file && file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImage(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+    setImage(file);
+    imageURL(file);
   };
   const handleUploadButtonClick = () => {
     fileInputRef.current.click();
   };
   async function handleUploadToBlog() {
     if (image && checker.title && checker.Des) {
-      let res = await axios.post("http://localhost:5000/Blog", {
-        Image: image,
-        title: checker.title,
-        Des: checker.Des,
-        Tags: checker.Tags,
-      });
-      console.log(res);
+      uploadFile();
+      if (checker.url) {
+        let res = await axios.post("http://localhost:5000/Blog", {
+          Image: checker.url,
+          title: checker.title,
+          Des: checker.Des,
+          Tags: checker.Tags,
+        });
+        console.log(res);
+      }
     } else {
       console.log(false);
     }
@@ -63,10 +94,10 @@ const Blog = () => {
         onDrop={handleDrop}
         onDragOver={handleDragOver}
       >
-        {image ? (
+        {checker.image ? (
           <>
             <img
-              src={image}
+              src={checker.image}
               alt="Dropped"
               style={{ maxWidth: "100%", maxHeight: "100%" }}
             />

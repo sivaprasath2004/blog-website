@@ -10,7 +10,7 @@
     width: 100%;
     background-color: var(--background);
     box-shadow: 0 2px 12px rgb(155 140 140 / 46%);
-    z-index: 2;
+    z-index: 10;
   }
   header h1{
     font-family: "Roboto Slab", serif;
