@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import axios from "axios";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage } from "./firebase/fb";
+import Time from "./Time";
 import "./Blog.css";
 const Blog = () => {
   const [checker, setChecker] = useState({ url: null });
@@ -14,6 +15,20 @@ const Blog = () => {
   const handleTags = (e) =>
     setChecker((pre) => ({ ...pre, Tags: e.target.value }));
   const handleCancel = () => setImage(null);
+  async function handleBackendBlog(url) {
+    console.log("worked");
+    const time = Time();
+    let res = await axios.post("http://localhost:5000/Blog", {
+      Image: url,
+      Title: checker.title,
+      Des: checker.Des,
+      Tags: checker.Tags,
+      Date: time,
+    });
+    console.log(res);
+    setChecker({ url: null });
+    setImage(null);
+  }
   function uploadFile() {
     const uploadTask = uploadBytesResumable(
       ref(storage, `/images/${image.name}`),
@@ -33,6 +48,8 @@ const Blog = () => {
         console.log("Upload successful");
         getDownloadURL(uploadTask.snapshot.ref)
           .then((downloadURL) => {
+            console.log("worked");
+            handleBackendBlog(downloadURL);
             setChecker((pre) => ({ ...pre, url: downloadURL }));
           })
           .catch((error) => {
@@ -69,16 +86,9 @@ const Blog = () => {
     fileInputRef.current.click();
   };
   async function handleUploadToBlog() {
-    if (image && checker.title && checker.Des) {
-      uploadFile();
-      if (checker.url) {
-        let res = await axios.post("http://localhost:5000/Blog", {
-          Image: checker.url,
-          title: checker.title,
-          Des: checker.Des,
-          Tags: checker.Tags,
-        });
-        console.log(res);
+    if (checker.title && checker.Des) {
+      if (checker.url === null) {
+        uploadFile();
       }
     } else {
       console.log(false);
@@ -105,7 +115,7 @@ const Blog = () => {
               className="cancel_image_button"
               onClick={() => handleCancel()}
             >
-              cancel
+              <p></p>
             </button>
           </>
         ) : (
