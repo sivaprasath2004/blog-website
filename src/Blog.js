@@ -5,7 +5,11 @@ import { storage } from "./firebase/fb";
 import Time from "./Time";
 import "./Blog.css";
 const Blog = () => {
-  const [checker, setChecker] = useState({ url: null });
+  const [checker, setChecker] = useState({
+    url: null,
+    Uploading: false,
+    progress: 50,
+  });
   const [image, setImage] = useState(null);
   const fileInputRef = useRef(null);
   const handleTitle = (e) =>
@@ -26,7 +30,13 @@ const Blog = () => {
       Date: time,
     });
     console.log(res);
-    setChecker({ url: null });
+    setChecker({
+      url: null,
+      title: undefined,
+      Des: undefined,
+      Tags: undefined,
+      Uploading: false,
+    });
     setImage(null);
   }
   function uploadFile() {
@@ -39,7 +49,8 @@ const Blog = () => {
       (snapshot) => {
         const progress =
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        console.log(`Upload is ${progress}% done`);
+        setChecker((pre) => ({ ...pre, progress: progress }));
+        console.log(`Upload is ${checker.progress}% done`);
       },
       (error) => {
         console.error("Upload failed:", error.message);
@@ -48,9 +59,7 @@ const Blog = () => {
         console.log("Upload successful");
         getDownloadURL(uploadTask.snapshot.ref)
           .then((downloadURL) => {
-            console.log("worked");
             handleBackendBlog(downloadURL);
-            setChecker((pre) => ({ ...pre, url: downloadURL }));
           })
           .catch((error) => {
             console.log(error);
@@ -88,6 +97,7 @@ const Blog = () => {
   async function handleUploadToBlog() {
     if (checker.title && checker.Des) {
       if (checker.url === null) {
+        setChecker((pre) => ({ ...pre, Uploading: true }));
         uploadFile();
       }
     } else {
@@ -95,53 +105,62 @@ const Blog = () => {
     }
   }
   return (
-    <section id="Blog">
-      <div className="input_container" id="Title">
-        <input type="text" placeholder="Title" onChange={handleTitle} />
-      </div>
-      <div
-        className="Drag_Drop"
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-      >
-        {checker.image ? (
-          <>
-            <img
-              src={checker.image}
-              alt="Dropped"
-              style={{ maxWidth: "100%", maxHeight: "100%" }}
+    <section id={checker.Uploading ? "Uploading" : "Blog"}>
+      {checker.Uploading ? (
+        <>
+          <div className="progress"></div>
+          <h1>Please do not refresh the page...</h1>
+        </>
+      ) : (
+        <>
+          <div className="input_container" id="Title">
+            <input type="text" placeholder="Title" onChange={handleTitle} />
+          </div>
+          <div
+            className="Drag_Drop"
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+          >
+            {checker.image ? (
+              <>
+                <img
+                  src={checker.image}
+                  alt="Dropped"
+                  style={{ maxWidth: "100%", maxHeight: "100%" }}
+                />
+                <button
+                  className="cancel_image_button"
+                  onClick={() => handleCancel()}
+                >
+                  <p></p>
+                </button>
+              </>
+            ) : (
+              <button onClick={handleUploadButtonClick}>
+                <p>Drag &amp; drop an image here or click to upload</p>
+              </button>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleInputChange}
+              ref={fileInputRef}
             />
-            <button
-              className="cancel_image_button"
-              onClick={() => handleCancel()}
-            >
-              <p></p>
-            </button>
-          </>
-        ) : (
-          <button onClick={handleUploadButtonClick}>
-            <p>Drag &amp; drop an image here or click to upload</p>
+          </div>
+          <textarea
+            placeholder="Description"
+            style={{ resize: "vertical" }}
+            onChange={handleDescrption}
+          />
+          <div className="input_container" id="Tags">
+            <input type="text" placeholder="Tags" onChange={handleTags} />
+          </div>
+          <button id="upload" onClick={handleUploadToBlog}>
+            Upload
           </button>
-        )}
-        <input
-          type="file"
-          accept="image/*"
-          style={{ display: "none" }}
-          onChange={handleInputChange}
-          ref={fileInputRef}
-        />
-      </div>
-      <textarea
-        placeholder="Description"
-        style={{ resize: "vertical" }}
-        onChange={handleDescrption}
-      />
-      <div className="input_container" id="Tags">
-        <input type="text" placeholder="Tags" onChange={handleTags} />
-      </div>
-      <button id="upload" onClick={handleUploadToBlog}>
-        Upload
-      </button>
+        </>
+      )}
     </section>
   );
 };
