@@ -66,6 +66,7 @@
     border: 1px solid;
     padding: 0 1rem;
     border-radius:10px ;
+    position: relative;
 }
 .input_container input{
     width: 100%;
@@ -85,6 +86,50 @@ textarea:focus{
 .input_container input:focus{
     outline: none;
 }
+#Tags{
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+}
+#Tags input{
+    width: 90%;
+}
+#Tags p{
+    font-size: 1.5rem;
+}
+#Tags img{
+    height: 30px;
+    width: 30px;
+    cursor: pointer;
+}
+.Tag_list{
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+    width: 95%;
+    gap: 1rem;
+}
+#tag{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding:0.5rem 1rem;
+    background-color: whitesmoke;
+    border-radius: 12px;
+}
+#tag p{
+    font-weight: 900;
+    line-break: anywhere;
+    font-size: 1rem;
+}
+#tag img{
+    height: 20px;
+    width: 20px;
+    cursor: pointer;
+}
+
 .Drag_Drop{
    height: 300px;
    width: 80%;

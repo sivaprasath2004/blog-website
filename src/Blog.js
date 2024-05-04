@@ -11,6 +11,27 @@ const Blog = () => {
     progress: 50,
   });
   const [image, setImage] = useState(null);
+  const [tags, setTags] = useState([]);
+  const color = [
+    {
+      color: " #FF0000",
+    },
+    {
+      color: "#FFA500",
+    },
+    {
+      color: "#008000",
+    },
+    {
+      color: "rgb(10 187 255)",
+    },
+    {
+      color: "#0000FF",
+    },
+    {
+      color: "#800080",
+    },
+  ];
   const fileInputRef = useRef(null);
   const handleTitle = (e) =>
     setChecker((pre) => ({ ...pre, title: e.target.value }));
@@ -26,7 +47,7 @@ const Blog = () => {
       Image: url,
       Title: checker.title,
       Des: checker.Des,
-      Tags: checker.Tags,
+      Tags: tags,
       Date: time,
     });
     console.log(res);
@@ -38,6 +59,7 @@ const Blog = () => {
       Uploading: false,
     });
     setImage(null);
+    setTags([]);
   }
   function uploadFile() {
     const uploadTask = uploadBytesResumable(
@@ -104,6 +126,18 @@ const Blog = () => {
       console.log(false);
     }
   }
+  function handleTagsContainer() {
+    if (checker.Tags) {
+      setTags([...tags, `#${checker.Tags}`]);
+      setChecker((pre) => ({ ...pre, Tags: undefined }));
+    } else {
+      console.log(false);
+    }
+  }
+  function handleClear(item) {
+    let result = tags.filter((ele) => ele !== item);
+    setTags(result);
+  }
   return (
     <section id={checker.Uploading ? "Uploading" : "Blog"}>
       {checker.Uploading ? (
@@ -153,8 +187,39 @@ const Blog = () => {
             style={{ resize: "vertical" }}
             onChange={handleDescrption}
           />
+          <div className="Tag_list">
+            {tags?.map?.((item, index) => (
+              <div id="tag" key={`tags_${index}`}>
+                <p
+                  key={`tag${index}`}
+                  style={{
+                    color: color[index > 6 ? index - 6 : index]?.color,
+                  }}
+                >
+                  {item}
+                </p>
+                <img
+                  src="https://cdn-icons-png.flaticon.com/128/8303/8303684.png"
+                  alt="close"
+                  key={`image_close${index}`}
+                  onClick={() => handleClear(item)}
+                />
+              </div>
+            ))}
+          </div>
           <div className="input_container" id="Tags">
-            <input type="text" placeholder="Tags" onChange={handleTags} />
+            <p>#</p>
+            <input
+              type="text"
+              placeholder="Tags"
+              value={checker.Tags ? checker.Tags : ""}
+              onChange={handleTags}
+            />
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/1828/1828817.png"
+              alt="addIcon"
+              onClick={() => handleTagsContainer()}
+            />
           </div>
           <button id="upload" onClick={handleUploadToBlog}>
             Upload
